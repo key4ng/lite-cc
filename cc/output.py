@@ -2,6 +2,7 @@
 
 import re
 import sys
+from datetime import datetime
 
 
 # ANSI color codes
@@ -52,8 +53,9 @@ class Logger:
         if verbose_only and not self.verbose:
             return
 
+        ts = datetime.now().strftime("%H:%M:%S")
         color, style = TAG_STYLES.get(tag, (WHITE, ""))
-        prefix = f"{style}{color}[{tag}]{RESET}"
+        prefix = f"{style}{color}[{tag}]{RESET} {DIM}{ts}{RESET}"
         print(f"{prefix} {message}", file=sys.stderr, flush=True)
 
     def tool_call(self, name: str, summary: str):
@@ -72,9 +74,10 @@ class Logger:
 
     def thinking(self, text: str):
         """Log model reasoning between tool calls — tagged with model name."""
+        ts = datetime.now().strftime("%H:%M:%S")
         tag = self._model_tag
         color, style = TAG_STYLES["thinking"]
-        prefix = f"{style}{color}[{tag}]{RESET}"
+        prefix = f"{style}{color}[{tag}]{RESET} {DIM}{ts}{RESET}"
         if self.verbose:
             print(f"{prefix} {text}", file=sys.stderr, flush=True)
         else:
