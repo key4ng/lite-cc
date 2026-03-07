@@ -1,5 +1,6 @@
 """Colored terminal output for cc agent loop."""
 
+import re
 import sys
 
 
@@ -27,15 +28,9 @@ TAG_STYLES = {
 class Logger:
     def __init__(self, verbose: bool = False):
         self.verbose = verbose
+        self._tool_count = 0
 
     def log(self, tag: str, message: str, verbose_only: bool = False):
-        """Print a tagged log line to stderr.
-
-        Args:
-            tag: The log tag (cc, tool, result, skill, assistant, error)
-            message: The message to display
-            verbose_only: If True, only show in verbose mode
-        """
         if verbose_only and not self.verbose:
             return
 
@@ -44,35 +39,64 @@ class Logger:
         print(f"{prefix} {message}", file=sys.stderr, flush=True)
 
     def tool_call(self, name: str, summary: str):
-        """Log a tool call — always visible, but compact in normal mode."""
+        self._tool_count += 1
         if self.verbose:
             self.log("tool", f"{name}: {summary}")
         else:
-            self.log("tool", f"{name}: {_compact(summary, 80)}")
+            clean = _clean_command(name, summary)
+            self.log("tool", f"{name}: {_compact(clean, 90)}")
 
     def tool_result(self, result: str):
-        """Log a tool result — only in verbose mode."""
         self.log("result", _truncate(result, 200), verbose_only=True)
 
     def skill_load(self, name: str):
-        """Log a skill being loaded — always visible."""
         self.log("skill", f"Loading: {name}")
 
     def assistant_message(self, text: str):
-        """Log the final assistant response — always visible."""
         self.log("assistant", text)
 
     def info(self, message: str):
-        """Log an info message — always visible."""
         self.log("cc", message)
 
     def debug(self, message: str):
-        """Log a debug message — verbose only."""
         self.log("cc", message, verbose_only=True)
 
     def iteration(self, i: int, max_iter: int):
-        """Log iteration progress — verbose only."""
         self.log("cc", f"Iteration {i + 1}/{max_iter}", verbose_only=True)
+
+
+def _clean_command(tool_name: str, summary: str) -> str:
+    """Make tool summaries human-readable in normal mode.
+
+    Strips boilerplate like 'source ~/.config/squire/env.sh &&',
+    collapses inline python scripts to a description, etc.
+    """
+    if tool_name != "bash":
+        return summary
+
+    cmd = summary.strip()
+
+    # Strip common prefixes
+    cmd = re.sub(r"^source\s+\S+\s*&&\s*", "", cmd)
+    cmd = re.sub(r"^cd\s+\S+\s*&&\s*", "", cmd)
+
+    # Collapse inline python to just what it's doing
+    if re.match(r"python3?\s+-\s*<<", cmd):
+        # Try to extract a meaningful description from the script
+        # Look for key operations: json.load, open(), subprocess, kubectl, etc.
+        match = re.search(r"open\(['\"]([^'\"]+)['\"]\)", summary)
+        if match:
+            return f"python3 (processing {match.group(1)})"
+        return "python3 (inline script)"
+
+    # Collapse python -c to short form
+    if re.match(r"python3?\s+-c\s+", cmd):
+        return "python3 (inline expression)"
+
+    # Strip heredoc body for display
+    cmd = re.sub(r"\s*<<-?\s*'?\w+'?\n.*", " << ...", cmd, flags=re.DOTALL)
+
+    return cmd
 
 
 def _truncate(text: str, max_len: int) -> str:
@@ -82,7 +106,6 @@ def _truncate(text: str, max_len: int) -> str:
 
 
 def _compact(text: str, max_len: int) -> str:
-    """Single line, trimmed."""
     line = text.split("\n")[0].strip()
     if len(line) <= max_len:
         return line
