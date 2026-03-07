@@ -19,13 +19,15 @@ def main():
 @click.option("--model", default=None, help="LiteLLM model string")
 @click.option("--max-iterations", default=None, type=int, help="Max tool loop iterations")
 @click.option("--project-dir", default=None, help="Project directory (default: cwd)")
-def run(prompt, plugin_dir, model, max_iterations, project_dir):
+@click.option("--verbose", "-v", is_flag=True, default=False, help="Show detailed tool output")
+def run(prompt, plugin_dir, model, max_iterations, project_dir, verbose):
     """Run a task and exit."""
     config = load_config(
         model=model,
         max_iterations=max_iterations,
         project_dir=project_dir,
         plugin_dirs=list(plugin_dir) if plugin_dir else [],
+        verbose=verbose,
     )
 
     plugins = load_plugins(config.plugin_dirs)

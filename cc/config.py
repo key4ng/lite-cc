@@ -19,6 +19,7 @@ class Config:
     oci_region: str = "us-chicago-1"
     oci_compartment: str = ""
     oci_config_profile: str = "DEFAULT"
+    verbose: bool = False
 
 
 def _load_yaml_config() -> dict:

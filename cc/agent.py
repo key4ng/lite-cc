@@ -1,12 +1,12 @@
 """Agent loop — the core tool loop that drives task execution."""
 
 import json
-import sys
 from cc.config import Config
 from cc.llm import LLMClient, LLMResponse
 from cc.safety import SafetyChecker
 from cc.tools import get_all_tools, execute_tool
 from cc.plugins.loader import PluginInfo
+from cc.output import Logger
 
 
 def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_registry: dict) -> str:
@@ -31,16 +31,13 @@ def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_regist
     return "\n\n".join(parts)
 
 
-def _log(tag: str, message: str):
-    print(f"[{tag}] {message}", file=sys.stderr, flush=True)
-
-
 def run_agent(
     prompt: str,
     config: Config,
     llm: LLMClient,
     plugins: list[PluginInfo],
 ) -> str:
+    log = Logger(verbose=config.verbose)
     safety = SafetyChecker(project_dir=config.project_dir)
 
     skill_registry = {}
@@ -59,12 +56,13 @@ def run_agent(
         {"role": "user", "content": prompt},
     ]
 
-    _log("cc", f"Using model: {config.model}")
+    log.info(f"Using model: {config.model}")
     for p in plugins:
-        _log("cc", f"Loaded plugin: {p.name} ({len(p.skills)} skills)")
-    _log("cc", "Starting task...")
+        log.info(f"Loaded plugin: {p.name} ({len(p.skills)} skills)")
+    log.info("Starting task...")
 
     for i in range(config.max_iterations):
+        log.iteration(i, config.max_iterations)
         response = llm.chat(messages, tools)
 
         # Build assistant message in OpenAI format
@@ -87,14 +85,14 @@ def run_agent(
 
         if not response.tool_calls:
             if response.text:
-                _log("assistant", response.text)
+                log.assistant_message(response.text)
             return response.text or ""
 
         # Execute each tool call
         for tc in response.tool_calls:
             if tc.name == "use_skill":
                 skill_name = tc.arguments.get("skill_name", "")
-                _log("skill", f"Loading: {skill_name}")
+                log.skill_load(skill_name)
                 if skill_name in skill_registry:
                     skill = skill_registry[skill_name]
                     messages.append({
@@ -110,16 +108,16 @@ def run_agent(
                         "content": f"Error: skill '{skill_name}' not found. Available: {available}",
                     })
             else:
-                _log("tool", f"{tc.name}: {_summarize_args(tc)}")
+                log.tool_call(tc.name, _summarize_args(tc))
                 result = execute_tool(tc.name, tc.arguments, safety, config.project_dir, timeout=config.timeout)
-                _log("result", _truncate(result, 200))
+                log.tool_result(result)
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
                     "content": result,
                 })
 
-    _log("cc", f"Reached max iterations ({config.max_iterations})")
+    log.info(f"Reached max iterations ({config.max_iterations})")
     return messages[-1].get("content", "") if messages else ""
 
 
@@ -133,9 +131,3 @@ def _summarize_args(tc) -> str:
     if tc.name == "grep":
         return tc.arguments.get("pattern", "")
     return str(tc.arguments)[:100]
-
-
-def _truncate(text: str, max_len: int) -> str:
-    if len(text) <= max_len:
-        return text.replace("\n", " ")
-    return text[:max_len].replace("\n", " ") + "..."
