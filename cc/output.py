@@ -71,22 +71,21 @@ class Logger:
         self.log("skill", f"Loading: {name}")
 
     def thinking(self, text: str):
-        """Log model reasoning between tool calls."""
+        """Log model reasoning between tool calls — tagged with model name."""
+        tag = self._model_tag
+        color, style = TAG_STYLES["thinking"]
+        prefix = f"{style}{color}[{tag}]{RESET}"
         if self.verbose:
-            self.log("thinking", text)
+            print(f"{prefix} {text}", file=sys.stderr, flush=True)
         else:
             clean = text.strip().replace("\n", " ")
             if len(clean) > 120:
                 clean = clean[:120] + "..."
-            self.log("thinking", clean)
+            print(f"{prefix} {clean}", file=sys.stderr, flush=True)
 
     def assistant_message(self, text: str):
-        """Log the final response — tagged with the model name."""
-        tag = self._model_tag
-        # Dynamic tag gets green bold style
-        color, style = TAG_STYLES["assistant"]
-        prefix = f"{style}{color}[{tag}]{RESET}"
-        print(f"{prefix} {text}", file=sys.stderr, flush=True)
+        """Log the final response — tagged as [cc]."""
+        self.log("cc", text)
 
     def info(self, message: str):
         self.log("cc", message)
