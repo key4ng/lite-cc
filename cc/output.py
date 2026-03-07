@@ -20,8 +20,8 @@ TAG_STYLES = {
     "cc":        (CYAN, BOLD),
     "tool":      (YELLOW, BOLD),
     "result":    (DIM, ""),
+    "plugin":    (GREEN, BOLD),
     "skill":     (MAGENTA, BOLD),
-    "assistant": (GREEN, BOLD),
     "thinking":  (BLUE, DIM),
     "error":     ("\033[31m", BOLD),
 }
@@ -68,6 +68,9 @@ class Logger:
 
     def tool_result(self, result: str):
         self.log("result", _truncate(result, 200), verbose_only=True)
+
+    def plugin_loaded(self, name: str, skill_count: int):
+        self.log("plugin", f"{name} ({skill_count} skills)")
 
     def skill_load(self, name: str):
         self.log("skill", f"Loading: {name}")

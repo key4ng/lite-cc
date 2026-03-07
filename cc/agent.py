@@ -58,7 +58,7 @@ def run_agent(
 
     log.info(f"Using model: {config.model}")
     for p in plugins:
-        log.info(f"Loaded plugin: {p.name} ({len(p.skills)} skills)")
+        log.plugin_loaded(p.name, len(p.skills))
     log.info("Starting task...")
 
     for i in range(config.max_iterations):
