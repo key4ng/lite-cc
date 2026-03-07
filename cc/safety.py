@@ -44,13 +44,40 @@ BLOCKED_PATH_PREFIXES = [
 ]
 
 
+def _extract_command_portion(command: str) -> str:
+    """Strip heredoc bodies and quoted strings to avoid false positives.
+
+    For a command like:
+        cat > /tmp/file.txt << 'EOF'
+        some text with rm and shutdown
+        EOF
+
+    We only want to check: cat > /tmp/file.txt << 'EOF'
+    """
+    # Remove heredoc bodies: << 'DELIM' ... DELIM or << DELIM ... DELIM
+    result = re.sub(
+        r"<<-?\s*'?(\w+)'?.*?\n.*?\n\1\b",
+        "",
+        command,
+        flags=re.DOTALL,
+    )
+    # Remove double-quoted strings (but not the command structure)
+    result = re.sub(r'"[^"]*"', '""', result)
+    # Remove single-quoted strings
+    result = re.sub(r"'[^']*'", "''", result)
+    return result
+
+
 class SafetyChecker:
     def __init__(self, project_dir: str):
         self.project_dir = str(Path(project_dir).resolve())
 
     def check_command(self, command: str) -> CheckResult:
+        # Only check the command portion before heredocs or quoted strings
+        # to avoid false positives from words like "shutdown" in comment text
+        check_text = _extract_command_portion(command)
         for pattern, description in DENY_PATTERNS:
-            if pattern.search(command):
+            if pattern.search(check_text):
                 return CheckResult(allowed=False, reason=f"Blocked: {description}")
         return CheckResult(allowed=True)
 
