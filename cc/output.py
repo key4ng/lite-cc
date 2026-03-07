@@ -21,6 +21,7 @@ TAG_STYLES = {
     "result":    (DIM, ""),
     "skill":     (MAGENTA, BOLD),
     "assistant": (GREEN, BOLD),
+    "thinking":  (BLUE, DIM),
     "error":     ("\033[31m", BOLD),
 }
 
@@ -55,13 +56,12 @@ class Logger:
     def thinking(self, text: str):
         """Log assistant reasoning between tool calls."""
         if self.verbose:
-            self.log("assistant", text)
+            self.log("thinking", text)
         else:
-            # Show a compact one-liner of what the model is thinking
             clean = text.strip().replace("\n", " ")
             if len(clean) > 120:
                 clean = clean[:120] + "..."
-            self.log("assistant", clean)
+            self.log("thinking", clean)
 
     def assistant_message(self, text: str):
         """Log the final assistant response."""
