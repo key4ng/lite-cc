@@ -88,6 +88,10 @@ def run_agent(
                 log.assistant_message(response.text)
             return response.text or ""
 
+        # Show assistant reasoning before tool calls
+        if response.text:
+            log.thinking(response.text)
+
         # Execute each tool call
         for tc in response.tool_calls:
             if tc.name == "use_skill":

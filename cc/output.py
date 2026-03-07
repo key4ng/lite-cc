@@ -52,7 +52,19 @@ class Logger:
     def skill_load(self, name: str):
         self.log("skill", f"Loading: {name}")
 
+    def thinking(self, text: str):
+        """Log assistant reasoning between tool calls."""
+        if self.verbose:
+            self.log("assistant", text)
+        else:
+            # Show a compact one-liner of what the model is thinking
+            clean = text.strip().replace("\n", " ")
+            if len(clean) > 120:
+                clean = clean[:120] + "..."
+            self.log("assistant", clean)
+
     def assistant_message(self, text: str):
+        """Log the final assistant response."""
         self.log("assistant", text)
 
     def info(self, message: str):
