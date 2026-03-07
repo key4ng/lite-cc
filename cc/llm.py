@@ -66,12 +66,16 @@ class LLMClient:
             kwargs["tools"] = tools
 
         if self.config.model.startswith("oci/"):
+            if not self.config.oci_compartment:
+                raise ValueError(
+                    "OCI compartment ID is required for oci/ models. "
+                    "Set CC_OCI_COMPARTMENT env var or oci_compartment in ~/.cc/config.yaml"
+                )
             if self._oci_signer is None:
                 self._oci_signer = _get_oci_signer(self.config)
             kwargs["oci_signer"] = self._oci_signer
             kwargs["oci_region_name"] = self.config.oci_region
-            if self.config.oci_compartment:
-                kwargs["oci_compartment_id"] = self.config.oci_compartment
+            kwargs["oci_compartment_id"] = self.config.oci_compartment
 
         response = litellm.completion(**kwargs)
         choice = response.choices[0]
