@@ -1,6 +1,7 @@
 """Grep tool — search file contents."""
 
 import subprocess
+from pathlib import Path
 from cc.safety import SafetyChecker
 
 TOOL_DEF = {
@@ -34,6 +35,10 @@ def execute(arguments: dict, safety: SafetyChecker, project_dir: str) -> str:
     pattern = arguments.get("pattern", "")
     search_path = arguments.get("path", ".")
     include = arguments.get("include", "")
+
+    # Validate absolute paths against safety policy
+    if Path(search_path).is_absolute() and not safety.check_path(search_path):
+        return f"Denied: path '{search_path}' is outside the project directory"
 
     cmd = ["grep", "-rn", "--color=never"]
     if include:

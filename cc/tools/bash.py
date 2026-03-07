@@ -22,7 +22,7 @@ TOOL_DEF = {
 }
 
 
-def execute(arguments: dict, safety: SafetyChecker, project_dir: str) -> str:
+def execute(arguments: dict, safety: SafetyChecker, project_dir: str, timeout: int = 120) -> str:
     command = arguments.get("command", "")
     check = safety.check_command(command)
     if not check.allowed:
@@ -31,7 +31,7 @@ def execute(arguments: dict, safety: SafetyChecker, project_dir: str) -> str:
     try:
         result = subprocess.run(
             command, shell=True, capture_output=True, text=True,
-            cwd=project_dir, timeout=120,
+            cwd=project_dir, timeout=timeout,
         )
         output = result.stdout
         if result.stderr:
@@ -46,6 +46,6 @@ def execute(arguments: dict, safety: SafetyChecker, project_dir: str) -> str:
             output = output[:100_000] + "\n... truncated (output too large)"
         return output
     except subprocess.TimeoutExpired:
-        return "Error: command timed out after 120 seconds"
+        return f"Error: command timed out after {timeout} seconds"
     except Exception as e:
         return f"Error: {e}"

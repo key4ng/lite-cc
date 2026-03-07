@@ -111,7 +111,7 @@ def run_agent(
                     })
             else:
                 _log("tool", f"{tc.name}: {_summarize_args(tc)}")
-                result = execute_tool(tc.name, tc.arguments, safety, config.project_dir)
+                result = execute_tool(tc.name, tc.arguments, safety, config.project_dir, timeout=config.timeout)
                 _log("result", _truncate(result, 200))
                 messages.append({
                     "role": "tool",

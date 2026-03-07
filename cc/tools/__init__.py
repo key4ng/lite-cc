@@ -46,9 +46,11 @@ def get_all_tools(skill_descriptions: list[str]) -> list[dict]:
     return tools
 
 
-def execute_tool(name: str, arguments: dict, safety: SafetyChecker, project_dir: str) -> str:
+def execute_tool(name: str, arguments: dict, safety: SafetyChecker, project_dir: str, timeout: int = 120) -> str:
     """Execute a built-in tool by name. Returns result string."""
     if name not in _TOOLS:
         return f"Error: unknown tool '{name}'"
     _, exec_fn = _TOOLS[name]
+    if name == "bash":
+        return exec_fn(arguments, safety, project_dir, timeout=timeout)
     return exec_fn(arguments, safety, project_dir)
