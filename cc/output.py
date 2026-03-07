@@ -26,10 +26,27 @@ TAG_STYLES = {
 }
 
 
+def _short_model_name(model: str) -> str:
+    """Extract a short display name from a model string.
+
+    'oci/openai.gpt-5.2' -> 'gpt-5.2'
+    'anthropic/claude-3-sonnet-20240229' -> 'claude-3-sonnet'
+    'openai/gpt-4o' -> 'gpt-4o'
+    """
+    name = model.split("/")[-1]
+    # Strip provider prefixes like 'openai.'
+    if "." in name and name.split(".")[0] in ("openai", "anthropic", "meta"):
+        name = name.split(".", 1)[1]
+    # Strip date suffixes like -20240229
+    name = re.sub(r"-\d{8}$", "", name)
+    return name
+
+
 class Logger:
-    def __init__(self, verbose: bool = False):
+    def __init__(self, verbose: bool = False, model: str = ""):
         self.verbose = verbose
         self._tool_count = 0
+        self._model_tag = _short_model_name(model) if model else "model"
 
     def log(self, tag: str, message: str, verbose_only: bool = False):
         if verbose_only and not self.verbose:
@@ -54,7 +71,7 @@ class Logger:
         self.log("skill", f"Loading: {name}")
 
     def thinking(self, text: str):
-        """Log assistant reasoning between tool calls."""
+        """Log model reasoning between tool calls."""
         if self.verbose:
             self.log("thinking", text)
         else:
@@ -64,8 +81,12 @@ class Logger:
             self.log("thinking", clean)
 
     def assistant_message(self, text: str):
-        """Log the final assistant response."""
-        self.log("assistant", text)
+        """Log the final response — tagged with the model name."""
+        tag = self._model_tag
+        # Dynamic tag gets green bold style
+        color, style = TAG_STYLES["assistant"]
+        prefix = f"{style}{color}[{tag}]{RESET}"
+        print(f"{prefix} {text}", file=sys.stderr, flush=True)
 
     def info(self, message: str):
         self.log("cc", message)

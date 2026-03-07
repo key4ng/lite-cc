@@ -37,7 +37,7 @@ def run_agent(
     llm: LLMClient,
     plugins: list[PluginInfo],
 ) -> str:
-    log = Logger(verbose=config.verbose)
+    log = Logger(verbose=config.verbose, model=config.model)
     safety = SafetyChecker(project_dir=config.project_dir)
 
     skill_registry = {}
