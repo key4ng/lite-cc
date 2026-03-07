@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.venv
+.claude
+.cursor
+.vscode
+.idea
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.mypy_cache
