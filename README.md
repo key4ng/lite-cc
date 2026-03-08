@@ -39,6 +39,9 @@ pip install -e .
 
 # Run
 litecc run "list all Python files and describe what each one does"
+
+# Run with the example plugin
+litecc run "analyze cc/agent.py" --plugin-dir examples/code-analyst
 ```
 
 Output:
