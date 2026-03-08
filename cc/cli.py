@@ -39,12 +39,9 @@ def run(prompt, plugin_dir, model, max_iterations, project_dir, verbose):
         )
     llm = LLMClient(config)
 
-    result = run_agent(
+    run_agent(
         prompt=prompt,
         config=config,
         llm=llm,
         plugins=plugins,
     )
-
-    if result:
-        click.echo(result)
