@@ -62,4 +62,4 @@ def test_oci_model_adds_signer():
             client.chat([{"role": "user", "content": "hi"}], [])
             call_kwargs = mock_comp.call_args.kwargs
             assert "oci_signer" in call_kwargs
-            assert call_kwargs["oci_region_name"] == "us-chicago-1"
+            assert call_kwargs["oci_region"] == "us-chicago-1"
