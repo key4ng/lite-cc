@@ -65,9 +65,16 @@ def run_agent(
         log.plugin_loaded(p.name, len(p.skills))
     log.info("Starting task...")
 
+    total_input = 0
+    total_output = 0
+    total_reasoning = 0
+
     for i in range(config.max_iterations):
         log.iteration(i, config.max_iterations)
         response = llm.chat(messages, tools)
+        total_input += response.usage.input_tokens
+        total_output += response.usage.output_tokens
+        total_reasoning += response.usage.reasoning_tokens
 
         # Build assistant message in OpenAI format
         assistant_msg: dict = {"role": "assistant"}
@@ -90,6 +97,7 @@ def run_agent(
         if not response.tool_calls:
             if response.text:
                 log.assistant_message(response.text)
+            log.usage_summary(total_input, total_output, total_reasoning, i + 1)
             return response.text or ""
 
         # Show assistant reasoning before tool calls
@@ -130,6 +138,7 @@ def run_agent(
                 })
 
     log.info(f"Reached max iterations ({config.max_iterations})")
+    log.usage_summary(total_input, total_output, total_reasoning, config.max_iterations)
     return messages[-1].get("content", "") if messages else ""
 
 

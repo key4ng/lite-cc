@@ -106,6 +106,14 @@ class Logger:
     def iteration(self, i: int, max_iter: int):
         self.log("litecc", f"Iteration {i + 1}/{max_iter}", verbose_only=True)
 
+    def usage_summary(self, input_tokens: int, output_tokens: int, reasoning_tokens: int, iterations: int):
+        parts = [f"tokens: {input_tokens:,} in / {output_tokens:,} out"]
+        if reasoning_tokens:
+            parts.append(f"{reasoning_tokens:,} reasoning")
+        parts.append(f"{iterations} iterations")
+        parts.append(f"{self._tool_count} tool calls")
+        self.log("litecc", " | ".join(parts))
+
 
 def _clean_command(tool_name: str, summary: str) -> str:
     """Make tool summaries human-readable in normal mode.

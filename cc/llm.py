@@ -17,10 +17,18 @@ class ToolCall:
 
 
 @dataclass
+class Usage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    reasoning_tokens: int = 0
+
+
+@dataclass
 class LLMResponse:
     text: str | None
     tool_calls: list[ToolCall] = field(default_factory=list)
     finish_reason: str = "stop"
+    usage: Usage = field(default_factory=Usage)
     raw: object = None
 
 
@@ -93,9 +101,20 @@ class LLMClient:
                     arguments=args,
                 ))
 
+        usage = Usage()
+        if hasattr(response, "usage") and response.usage:
+            u = response.usage
+            usage.input_tokens = getattr(u, "prompt_tokens", 0) or 0
+            usage.output_tokens = getattr(u, "completion_tokens", 0) or 0
+            # reasoning tokens may be in completion_tokens_details
+            details = getattr(u, "completion_tokens_details", None)
+            if details:
+                usage.reasoning_tokens = getattr(details, "reasoning_tokens", 0) or 0
+
         return LLMResponse(
             text=message.content,
             tool_calls=tool_calls,
             finish_reason=choice.finish_reason or "stop",
+            usage=usage,
             raw=response,
         )

@@ -10,7 +10,7 @@ import yaml
 @dataclass
 class Config:
     model: str = "oci/openai.gpt-5.2"
-    max_iterations: int = 50
+    max_iterations: int = 100
     timeout: int = 120
     max_output_lines: int = 2000
     max_output_bytes: int = 100_000
