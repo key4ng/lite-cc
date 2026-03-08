@@ -17,6 +17,7 @@ def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_regist
         f"You can only access files inside the project directory: {config.project_dir}",
         "You cannot delete files or run destructive commands — they will be blocked.",
         "Use tools to explore, read, edit, and run commands. Be concise and focused.",
+        "Always briefly explain what you are about to do and why before making tool calls.",
         "IMPORTANT: You are running non-interactively — there is no user to answer questions.",
         "Never stop to ask the user for input. If data is missing, make a reasonable assumption",
         "(e.g., use ticket creation time as alarm timestamp, use a default namespace),",
