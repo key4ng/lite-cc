@@ -17,7 +17,7 @@ BLUE = "\033[34m"
 WHITE = "\033[37m"
 
 TAG_STYLES = {
-    "cc":        (CYAN, BOLD),
+    "litecc":    (CYAN, BOLD),
     "tool":      (YELLOW, BOLD),
     "result":    ("\033[90m", ""),
     "plugin":    (GREEN, BOLD),
@@ -95,16 +95,16 @@ class Logger:
 
     def assistant_message(self, text: str):
         """Log the final response — tagged as [cc]."""
-        self.log("cc", text)
+        self.log("litecc", text)
 
     def info(self, message: str):
-        self.log("cc", message)
+        self.log("litecc", message)
 
     def debug(self, message: str):
-        self.log("cc", message, verbose_only=True)
+        self.log("litecc", message, verbose_only=True)
 
     def iteration(self, i: int, max_iter: int):
-        self.log("cc", f"Iteration {i + 1}/{max_iter}", verbose_only=True)
+        self.log("litecc", f"Iteration {i + 1}/{max_iter}", verbose_only=True)
 
 
 def _clean_command(tool_name: str, summary: str) -> str:
