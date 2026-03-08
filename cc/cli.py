@@ -31,6 +31,12 @@ def run(prompt, plugin_dir, model, max_iterations, project_dir, verbose):
     )
 
     plugins = load_plugins(config.plugin_dirs)
+    if config.plugin_dirs and not plugins:
+        click.echo(
+            f"Warning: --plugin-dir specified but no plugins found. "
+            f"Checked: {', '.join(config.plugin_dirs)}",
+            err=True,
+        )
     llm = LLMClient(config)
 
     result = run_agent(
