@@ -25,6 +25,7 @@
 
 - **Multi-model** — OpenAI, Anthropic, OCI, Gemini, Groq, Ollama, and [any provider LiteLLM supports](https://docs.litellm.ai/docs/providers).
 - **Autonomous tool loop** — Reasons, calls tools, observes results, and iterates until the task is done.
+- **Built-in tools** — `bash`, `read_file`, `write_file`, `list_files`, `grep`, and `use_skill` out of the box.
 - **Claude Code plugin compatible** — Load plugins and skills using the same format as Claude Code. Skills are loaded on demand to keep context lean.
 - **Safe by default** — Dangerous commands are blocked. File access is scoped to the project directory. Fully autonomous, no prompts.
 - **Structured output** — Colored, timestamped progress logs show exactly what the agent is doing.
