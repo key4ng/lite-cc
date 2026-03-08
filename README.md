@@ -32,15 +32,22 @@
 ## Quick Start
 
 ```bash
-# Install
-git clone https://github.com/key4ng/lite-cc.git
-cd lite-cc
-pip install -e .
+# Install from PyPI
+pip install lite-cc
 
+# Or with uv
+uv pip install lite-cc
+
+# Or install from source
+git clone https://github.com/key4ng/lite-cc.git
+cd lite-cc && pip install -e .
+```
+
+```bash
 # Run
 litecc run "list all Python files and describe what each one does"
 
-# Run with the example plugin
+# Run with a plugin
 litecc run "analyze cc/agent.py" --plugin-dir examples/code-analyst
 ```
 
