@@ -19,7 +19,7 @@ WHITE = "\033[37m"
 TAG_STYLES = {
     "cc":        (CYAN, BOLD),
     "tool":      (YELLOW, BOLD),
-    "result":    (DIM, ""),
+    "result":    ("\033[90m", ""),
     "plugin":    (GREEN, BOLD),
     "skill":     (MAGENTA, BOLD),
     "thinking":  (BLUE, DIM),
@@ -55,7 +55,7 @@ class Logger:
 
         ts = datetime.now().strftime("%H:%M:%S")
         color, style = TAG_STYLES.get(tag, (WHITE, ""))
-        prefix = f"{style}{color}[{tag}]{RESET} {DIM}{ts}{RESET}"
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[{tag}]{RESET}"
         print(f"{prefix} {message}", file=sys.stderr, flush=True)
 
     def tool_call(self, name: str, summary: str):
@@ -72,15 +72,19 @@ class Logger:
     def plugin_loaded(self, name: str, skill_count: int):
         self.log("plugin", f"{name} ({skill_count} skills)")
 
-    def skill_load(self, name: str):
-        self.log("skill", f"Loading: {name}")
+    def skill_load(self, name: str, description: str = ""):
+        ts = datetime.now().strftime("%H:%M:%S")
+        color, style = TAG_STYLES["skill"]
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[skill: {name}]{RESET}"
+        msg = description or "loaded"
+        print(f"{prefix} {msg}", file=sys.stderr, flush=True)
 
     def thinking(self, text: str):
         """Log model reasoning between tool calls — tagged with model name."""
         ts = datetime.now().strftime("%H:%M:%S")
         tag = self._model_tag
         color, style = TAG_STYLES["thinking"]
-        prefix = f"{style}{color}[{tag}]{RESET} {DIM}{ts}{RESET}"
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[{tag}]{RESET}"
         if self.verbose:
             print(f"{prefix} {text}", file=sys.stderr, flush=True)
         else:

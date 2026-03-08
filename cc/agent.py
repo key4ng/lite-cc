@@ -100,15 +100,17 @@ def run_agent(
         for tc in response.tool_calls:
             if tc.name == "use_skill":
                 skill_name = tc.arguments.get("skill_name", "")
-                log.skill_load(skill_name)
                 if skill_name in skill_registry:
                     skill = skill_registry[skill_name]
+                    desc = skill.description[:100] if skill.description else ""
+                    log.skill_load(skill_name, desc)
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
                         "content": f"Skill loaded. Follow these instructions:\n\n{skill.content}",
                     })
                 else:
+                    log.skill_load(skill_name, "NOT FOUND")
                     available = ", ".join(skill_registry.keys())
                     messages.append({
                         "role": "tool",
