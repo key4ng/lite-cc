@@ -75,7 +75,7 @@ class Logger:
     def skill_load(self, name: str, description: str = ""):
         ts = datetime.now().strftime("%H:%M:%S")
         color, style = TAG_STYLES["skill"]
-        prefix = f"{DIM}{ts}{RESET} {style}{color}[skill: {name}]{RESET}"
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[skill/{name}]{RESET}"
         msg = description or "loaded"
         print(f"{prefix} {msg}", file=sys.stderr, flush=True)
 
