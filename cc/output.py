@@ -60,11 +60,14 @@ class Logger:
 
     def tool_call(self, name: str, summary: str):
         self._tool_count += 1
+        ts = datetime.now().strftime("%H:%M:%S")
+        color, style = TAG_STYLES["tool"]
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[tool/{name}]{RESET}"
         if self.verbose:
-            self.log("tool", f"{name}: {summary}")
+            print(f"{prefix} {summary}", file=sys.stderr, flush=True)
         else:
             clean = _clean_command(name, summary)
-            self.log("tool", f"{name}: {_compact(clean, 90)}")
+            print(f"{prefix} {_compact(clean, 90)}", file=sys.stderr, flush=True)
 
     def tool_result(self, result: str):
         self.log("result", _truncate(result, 200), verbose_only=True)
