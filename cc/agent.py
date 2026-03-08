@@ -103,7 +103,7 @@ def run_agent(
                 if skill_name in skill_registry:
                     skill = skill_registry[skill_name]
                     # Use first sentence, capped for display
-                    raw = (skill.description or "").replace("OCASGS MLE ", "").replace("OCASGS ", "")
+                    raw = skill.description or ""
                     desc = raw.split(".")[0].split("—")[0].strip()[:80]
                     log.skill_load(skill_name, desc)
                     messages.append({
