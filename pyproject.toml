@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "lite-cc"
 version = "0.1.0"
 description = "Lightweight multi-model coding agent CLI"
+authors = [{name = "Keyang Ru", email = "rukeyang@gmail.com"}]
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.0",
@@ -15,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-cc = "cc.cli:main"
+litecc = "cc.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -11,7 +11,7 @@ from cc.output import Logger
 
 def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_registry: dict) -> str:
     parts = [
-        "You are cc, a coding agent that helps with software engineering tasks.",
+        "You are litecc, a coding agent that helps with software engineering tasks.",
         f"You can only access files inside the project directory: {config.project_dir}",
         "You cannot delete files or run destructive commands — they will be blocked.",
         "Use tools to explore, read, edit, and run commands. Be concise and focused.",
@@ -102,7 +102,9 @@ def run_agent(
                 skill_name = tc.arguments.get("skill_name", "")
                 if skill_name in skill_registry:
                     skill = skill_registry[skill_name]
-                    desc = skill.description[:100] if skill.description else ""
+                    # Use first sentence, capped for display
+                    raw = (skill.description or "").replace("OCASGS MLE ", "").replace("OCASGS ", "")
+                    desc = raw.split(".")[0].split("—")[0].strip()[:80]
                     log.skill_load(skill_name, desc)
                     messages.append({
                         "role": "tool",

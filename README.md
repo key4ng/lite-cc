@@ -15,7 +15,7 @@
 
 ---
 
-**lite-cc** (`cc`) is a lightweight CLI that connects to any LLM provider, runs an autonomous tool loop to complete coding tasks, and extends its capabilities through a plugin and skill system. It is designed to be safe by default, provider-agnostic, and easy to extend.
+**lite-cc** (`litecc`) is a lightweight CLI that connects to any LLM provider, runs an autonomous tool loop to complete coding tasks, and extends its capabilities through a plugin and skill system. It is designed to be safe by default, provider-agnostic, and easy to extend.
 
 ## Key Features
 
@@ -44,25 +44,24 @@ pip install -e .
 ### First Run
 
 ```bash
-cc run "list all Python files in this directory and describe what each one does"
+litecc run "list all Python files in this directory and describe what each one does"
 ```
 
 You should see structured output like:
 
 ```
-[cc] Using model: oci/openai.gpt-5.2
-[cc] Starting task...
-[tool] list_files: **/*.py
-[result] cc/__init__.py cc/agent.py cc/cli.py ...
-[tool] read_file: cc/agent.py
-[result] (142 lines)
-[assistant] Here are the Python files...
+14:32:05 [cc] Using model: oci/openai.gpt-5.2
+14:32:05 [cc] Starting task...
+14:32:06 [tool] list_files: **/*.py
+14:32:07 [tool] read_file: cc/agent.py
+14:32:08 [gpt-5.2] I'll describe each file...
+14:32:09 [cc] Here are the Python files...
 ```
 
 ## How It Works
 
 ```
-cc run "fix the failing tests"
+litecc run "fix the failing tests"
         |
         v
   Load config, plugins, skills
@@ -85,26 +84,26 @@ The loop runs until the model produces a final answer or the maximum iteration c
 
 ```bash
 # Basic task
-cc run "fix the failing tests"
+litecc run "fix the failing tests"
 
 # Specify a model
-cc run "refactor this module" --model anthropic/claude-3-sonnet-20240229
+litecc run "refactor this module" --model anthropic/claude-3-sonnet-20240229
 
 # Load one or more plugins
-cc run "triage the latest ticket" --plugin-dir ~/my-plugin
-cc run "check k8s health" --plugin-dir ~/plugin-a --plugin-dir ~/plugin-b
+litecc run "triage the latest ticket" --plugin-dir ~/my-plugin
+litecc run "check k8s health" --plugin-dir ~/plugin-a --plugin-dir ~/plugin-b
 
 # Target a different project directory
-cc run "explain the architecture" --project-dir ~/other-repo
+litecc run "explain the architecture" --project-dir ~/other-repo
 
 # Limit the tool loop
-cc run "explore the codebase" --max-iterations 20
+litecc run "explore the codebase" --max-iterations 20
 ```
 
 ### CLI Reference
 
 ```
-Usage: cc run [OPTIONS] PROMPT
+Usage: litecc run [OPTIONS] PROMPT
 
 Options:
   --plugin-dir TEXT      Plugin directory (repeatable)

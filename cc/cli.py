@@ -9,7 +9,7 @@ from cc.plugins.loader import load_plugins
 
 @click.group()
 def main():
-    """cc — lightweight multi-model coding agent."""
+    """litecc — lightweight multi-model coding agent."""
     pass
 
 

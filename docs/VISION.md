@@ -2,12 +2,12 @@
 
 ## What is lite-cc?
 
-A lightweight, multi-model coding agent CLI (`cc`) that runs tool loops safely, loads plugins/skills as first-class citizens, and works with any LLM provider.
+A lightweight, multi-model coding agent CLI (`litecc`) that runs tool loops safely, loads plugins/skills as first-class citizens, and works with any LLM provider.
 
 ## Architecture
 
 ```
-cc (CLI entry point)
+litecc (CLI entry point)
 |
 +-- core/
 |   +-- agent_loop.py      # The tool loop: prompt -> LLM -> tool calls -> execute -> repeat
@@ -36,7 +36,7 @@ cc (CLI entry point)
 |   +-- runner.py           # Inject skill content into conversation
 |
 +-- cli/
-    +-- main.py             # CLI entry: `cc` (interactive), `cc run "..."` (one-shot)
+    +-- main.py             # CLI entry: `litecc` (interactive), `litecc run "..."` (one-shot)
     +-- output.py           # Terminal output formatting
 ```
 

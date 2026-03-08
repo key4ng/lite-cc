@@ -2,7 +2,7 @@
 
 ## Goal
 
-A working `cc run "do something"` that:
+A working `litecc run "do something"` that:
 1. Connects to OCI-hosted OpenAI models via LiteLLM
 2. Runs an automatic tool loop (LLM calls tools, we execute, repeat)
 3. Has built-in tools: bash, read_file, write_file, list_files, grep
@@ -39,7 +39,7 @@ lite-cc/
   cc/
     __init__.py
     __main__.py          # `python -m cc` entry point
-    cli.py               # Click CLI: `cc run "prompt"`
+    cli.py               # Click CLI: `litecc run "prompt"`
     agent.py             # The tool loop
     llm.py               # LiteLLM wrapper + OCI auth
     safety.py            # Command deny list + path checks
@@ -65,9 +65,9 @@ lite-cc/
 ### 1. CLI (`cli.py`)
 
 ```bash
-cc run "fix the failing tests"
-cc run "fix the failing tests" --plugin-dir ~/my-plugin
-cc run "fix the failing tests" --model oci/openai.gpt-5.2
+litecc run "fix the failing tests"
+litecc run "fix the failing tests" --plugin-dir ~/my-plugin
+litecc run "fix the failing tests" --model oci/openai.gpt-5.2
 ```
 
 Options:
@@ -258,19 +258,19 @@ Load from (in priority order):
 
 MVP is done when:
 ```bash
-cc run "list all Python files in this directory" --plugin-dir ~/workspace/squire-cli/src/squire/plugin
+litecc run "list all Python files in this directory" --plugin-dir ~/workspace/squire-cli/src/squire/plugin
 ```
 ...correctly loads the plugin, uses list_files + grep tools, and returns the answer.
 
 And:
 ```bash
-cc run "check k8s health for namespace X in region Y" --plugin-dir ~/workspace/squire-cli/src/squire/plugin
+litecc run "check k8s health for namespace X in region Y" --plugin-dir ~/workspace/squire-cli/src/squire/plugin
 ```
 ...loads the k8s-runtime-health skill and follows its instructions using bash.
 
 ## Build Order
 
-1. `config.py` + `cli.py` — get `cc run "hello"` working
+1. `config.py` + `cli.py` — get `litecc run "hello"` working
 2. `llm.py` — connect to OCI model, get a text response
 3. `tools/` — implement 5 built-in tools
 4. `agent.py` — wire up the tool loop
