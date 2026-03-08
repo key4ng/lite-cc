@@ -34,5 +34,8 @@ Repository = "https://github.com/key4ng/lite-cc"
 [project.scripts]
 litecc = "cc.cli:main"
 
+[tool.setuptools.packages.find]
+include = ["cc*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
