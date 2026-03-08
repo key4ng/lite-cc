@@ -20,6 +20,7 @@ class Config:
     oci_compartment: str = ""
     oci_config_profile: str = "DEFAULT"
     verbose: bool = False
+    output_format: str = "text"
 
 
 def _load_yaml_config() -> dict:

@@ -82,7 +82,7 @@ class LLMClient:
             if self._oci_signer is None:
                 self._oci_signer = _get_oci_signer(self.config)
             kwargs["oci_signer"] = self._oci_signer
-            kwargs["oci_region_name"] = self.config.oci_region
+            kwargs["oci_region"] = self.config.oci_region
             kwargs["oci_compartment_id"] = self.config.oci_compartment
 
         response = litellm.completion(**kwargs)

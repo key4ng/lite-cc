@@ -1,12 +1,14 @@
 """Agent loop — the core tool loop that drives task execution."""
 
 import json
+import time
 from cc.config import Config
 from cc.llm import LLMClient, LLMResponse
 from cc.safety import SafetyChecker
 from cc.tools import get_all_tools, execute_tool
 from cc.plugins.loader import PluginInfo
 from cc.output import Logger
+from cc.stream import StreamEmitter
 
 
 def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_registry: dict) -> str:
@@ -35,6 +37,22 @@ def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_regist
     return "\n\n".join(parts)
 
 
+def _build_content_blocks(response: LLMResponse) -> list[dict]:
+    """Build content block array from an LLM response for stream-json."""
+    blocks = []
+    if response.text:
+        blocks.append({"type": "text", "text": response.text})
+    if response.tool_calls:
+        for tc in response.tool_calls:
+            blocks.append({
+                "type": "tool_use",
+                "id": tc.id,
+                "name": tc.name,
+                "input": tc.arguments,
+            })
+    return blocks
+
+
 def run_agent(
     prompt: str,
     config: Config,
@@ -43,6 +61,10 @@ def run_agent(
 ) -> str:
     log = Logger(verbose=config.verbose, model=config.model)
     safety = SafetyChecker(project_dir=config.project_dir)
+
+    stream = None
+    if config.output_format == "stream-json":
+        stream = StreamEmitter()
 
     skill_registry = {}
     for plugin in plugins:
@@ -65,10 +87,34 @@ def run_agent(
         log.plugin_loaded(p.name, len(p.skills))
     log.info("Starting task...")
 
+    plugin_names = [p.name for p in plugins]
+    if stream:
+        stream.system_init(config.model, plugin_names)
+
+    start_time = time.monotonic()
     total_input = 0
     total_output = 0
     total_reasoning = 0
 
+    try:
+        return _run_loop(
+            config, llm, log, stream, safety, skill_registry,
+            messages, tools, start_time,
+            total_input, total_output, total_reasoning,
+        )
+    except Exception as e:
+        if stream:
+            duration_ms = int((time.monotonic() - start_time) * 1000)
+            stream.system_error(str(e))
+            stream.result("", is_error=True, duration_ms=duration_ms, iterations=0)
+        raise
+
+
+def _run_loop(
+    config, llm, log, stream, safety, skill_registry,
+    messages, tools, start_time,
+    total_input, total_output, total_reasoning,
+):
     for i in range(config.max_iterations):
         log.iteration(i, config.max_iterations)
         response = llm.chat(messages, tools)
@@ -94,11 +140,23 @@ def run_agent(
             ]
         messages.append(assistant_msg)
 
+        # Emit assistant message for stream-json
+        if stream:
+            content_blocks = _build_content_blocks(response)
+            if content_blocks:
+                stream.assistant(content_blocks)
+
         if not response.tool_calls:
             if response.text:
                 log.assistant_message(response.text)
-            log.usage_summary(total_input, total_output, total_reasoning, i + 1)
-            return response.text or ""
+            final_text = response.text or ""
+            iterations_used = i + 1
+            log.usage_summary(total_input, total_output, total_reasoning, iterations_used)
+            if stream:
+                duration_ms = int((time.monotonic() - start_time) * 1000)
+                stream.result(final_text, is_error=False, duration_ms=duration_ms, iterations=iterations_used)
+                stream.system_done(iterations_used)
+            return final_text
 
         # Show assistant reasoning before tool calls
         if response.text:
@@ -114,23 +172,35 @@ def run_agent(
                     raw = skill.description or ""
                     desc = raw.split(".")[0].split("—")[0].strip()[:80]
                     log.skill_load(skill_name, desc)
+                    result_text = f"Skill loaded. Follow these instructions:\n\n{skill.content}"
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "content": f"Skill loaded. Follow these instructions:\n\n{skill.content}",
+                        "content": result_text,
                     })
+                    if stream:
+                        stream.tool_use(tc.id, tc.name, tc.arguments)
+                        stream.tool_result(tc.id, tc.name, result_text, error=False)
                 else:
                     log.skill_load(skill_name, "NOT FOUND")
                     available = ", ".join(skill_registry.keys())
+                    error_text = f"Error: skill '{skill_name}' not found. Available: {available}"
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "content": f"Error: skill '{skill_name}' not found. Available: {available}",
+                        "content": error_text,
                     })
+                    if stream:
+                        stream.tool_use(tc.id, tc.name, tc.arguments)
+                        stream.tool_result(tc.id, tc.name, error_text, error=True)
             else:
                 log.tool_call(tc.name, _summarize_args(tc))
+                if stream:
+                    stream.tool_use(tc.id, tc.name, tc.arguments)
                 result = execute_tool(tc.name, tc.arguments, safety, config.project_dir, timeout=config.timeout)
                 log.tool_result(result)
+                if stream:
+                    stream.tool_result(tc.id, tc.name, result, error=False)
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
@@ -139,6 +209,14 @@ def run_agent(
 
     log.info(f"Reached max iterations ({config.max_iterations})")
     log.usage_summary(total_input, total_output, total_reasoning, config.max_iterations)
+
+    if stream:
+        duration_ms = int((time.monotonic() - start_time) * 1000)
+        stream.system_error("max iterations reached")
+        final_text = messages[-1].get("content", "") if messages else ""
+        stream.result(final_text, is_error=True, duration_ms=duration_ms, iterations=config.max_iterations)
+        stream.system_done(config.max_iterations)
+
     return messages[-1].get("content", "") if messages else ""
 
 

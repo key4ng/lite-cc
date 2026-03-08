@@ -20,14 +20,24 @@ def main():
 @click.option("--max-iterations", default=None, type=int, help="Max tool loop iterations")
 @click.option("--project-dir", default=None, help="Project directory (default: cwd)")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Show detailed tool output")
-def run(prompt, plugin_dir, model, max_iterations, project_dir, verbose):
+@click.option(
+    "--output-format",
+    default="text",
+    type=click.Choice(["text", "stream-json"]),
+    help="Output format (stream-json requires --verbose)",
+)
+def run(prompt, plugin_dir, model, max_iterations, project_dir, verbose, output_format):
     """Run a task and exit."""
+    if output_format == "stream-json" and not verbose:
+        raise click.UsageError("--output-format=stream-json requires --verbose")
+
     config = load_config(
         model=model,
         max_iterations=max_iterations,
         project_dir=project_dir,
         plugin_dirs=list(plugin_dir) if plugin_dir else [],
         verbose=verbose,
+        output_format=output_format,
     )
 
     plugins = load_plugins(config.plugin_dirs)
