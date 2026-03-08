@@ -5,7 +5,7 @@ from cc.config import load_config
 def test_defaults():
     config = load_config()
     assert config.model == "oci/openai.gpt-5.2"
-    assert config.max_iterations == 50
+    assert config.max_iterations == 100
     assert config.timeout == 120
     assert config.project_dir is not None
 
