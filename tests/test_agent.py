@@ -5,7 +5,7 @@ from cc.llm import LLMResponse, ToolCall
 
 
 def test_simple_response_no_tools():
-    config = Config(model="openai/gpt-4o", max_iterations=10)
+    config = Config(model="oci/xai.grok-4-1-fast-reasoning", max_iterations=10)
     mock_client = MagicMock()
     mock_client.chat.return_value = LLMResponse(text="Hello!", tool_calls=[])
 
@@ -20,7 +20,7 @@ def test_simple_response_no_tools():
 
 
 def test_tool_call_then_response():
-    config = Config(model="openai/gpt-4o", max_iterations=10)
+    config = Config(model="oci/xai.grok-4-1-fast-reasoning", max_iterations=10)
     mock_client = MagicMock()
 
     first_response = LLMResponse(
@@ -41,7 +41,7 @@ def test_tool_call_then_response():
 
 
 def test_max_iterations_stops_loop():
-    config = Config(model="openai/gpt-4o", max_iterations=2)
+    config = Config(model="oci/xai.grok-4-1-fast-reasoning", max_iterations=2)
     mock_client = MagicMock()
     mock_client.chat.return_value = LLMResponse(
         text=None,

@@ -4,7 +4,7 @@ from cc.config import Config
 
 
 def test_chat_calls_litellm():
-    config = Config(model="openai/gpt-4o")
+    config = Config(model="xai.grok-4-1-fast-reasoning")
     client = LLMClient(config)
     messages = [{"role": "user", "content": "hello"}]
     tools = []
@@ -23,7 +23,7 @@ def test_chat_calls_litellm():
 
 
 def test_chat_with_tool_calls():
-    config = Config(model="openai/gpt-4o")
+    config = Config(model="xai.grok-4-1-fast-reasoning")
     client = LLMClient(config)
 
     mock_tc = MagicMock()
@@ -48,7 +48,7 @@ def test_chat_with_tool_calls():
 
 
 def test_oci_model_adds_signer():
-    config = Config(model="oci/openai.gpt-5.2", oci_region="us-chicago-1", oci_compartment="ocid1.test")
+    config = Config(model="oci/xai.grok-4-1-fast-reasoning", oci_region="us-chicago-1", oci_compartment="ocid1.test")
     client = LLMClient(config)
 
     mock_response = MagicMock()

@@ -30,7 +30,7 @@ TAG_STYLES = {
 def _short_model_name(model: str) -> str:
     """Extract a short display name from a model string.
 
-    'oci/openai.gpt-5.2' -> 'gpt-5.2'
+    'oci/xai.grok-4-1-fast-reasoning' -> 'grok-4-1-fast-reasoning'
     'anthropic/claude-3-sonnet-20240229' -> 'claude-3-sonnet'
     'openai/gpt-4o' -> 'gpt-4o'
     """

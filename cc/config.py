@@ -9,7 +9,7 @@ import yaml
 
 @dataclass
 class Config:
-    model: str = "oci/openai.gpt-5.2"
+    model: str = "oci/xai.grok-4-1-fast-reasoning"
     max_iterations: int = 100
     timeout: int = 120
     max_output_lines: int = 2000

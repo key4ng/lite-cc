@@ -15,12 +15,12 @@ class TestStreamEmitter:
         emitter = StreamEmitter()
         buf = StringIO()
         with patch("sys.stdout", buf):
-            emitter.system_init("oci/openai.gpt-5.2", ["squire"])
+            emitter.system_init("oci/xai.grok-4-1-fast-reasoning", ["code-analyst"])
         event = json.loads(buf.getvalue().strip())
         assert event["type"] == "system"
         assert event["subtype"] == "init"
-        assert event["model"] == "oci/openai.gpt-5.2"
-        assert event["plugins"] == ["squire"]
+        assert event["model"] == "oci/xai.grok-4-1-fast-reasoning"
+        assert event["plugins"] == ["code-analyst"]
 
     def test_system_done(self):
         emitter = StreamEmitter()
@@ -102,7 +102,7 @@ class TestStreamEmitter:
 class TestStreamJsonAgent:
     def test_simple_response_emits_stream_json(self):
         config = Config(
-            model="openai/gpt-4o",
+            model="oci/xai.grok-4-1-fast-reasoning",
             max_iterations=10,
             verbose=True,
             output_format="stream-json",
@@ -127,7 +127,7 @@ class TestStreamJsonAgent:
         # Check init event
         init = events[0]
         assert init["subtype"] == "init"
-        assert init["model"] == "openai/gpt-4o"
+        assert init["model"] == "oci/xai.grok-4-1-fast-reasoning"
 
         # Check result event
         result_event = [e for e in events if e["type"] == "result"][0]
@@ -137,7 +137,7 @@ class TestStreamJsonAgent:
 
     def test_tool_call_emits_tool_events(self):
         config = Config(
-            model="openai/gpt-4o",
+            model="oci/xai.grok-4-1-fast-reasoning",
             max_iterations=10,
             verbose=True,
             output_format="stream-json",
@@ -167,7 +167,7 @@ class TestStreamJsonAgent:
 
     def test_max_iterations_emits_error(self):
         config = Config(
-            model="openai/gpt-4o",
+            model="oci/xai.grok-4-1-fast-reasoning",
             max_iterations=2,
             verbose=True,
             output_format="stream-json",
@@ -195,7 +195,7 @@ class TestStreamJsonAgent:
 
     def test_exception_emits_error_event(self):
         config = Config(
-            model="openai/gpt-4o",
+            model="oci/xai.grok-4-1-fast-reasoning",
             max_iterations=10,
             verbose=True,
             output_format="stream-json",
@@ -227,7 +227,7 @@ class TestStreamJsonAgent:
 
     def test_text_format_no_stdout(self):
         """Regular text format should not emit anything to stdout."""
-        config = Config(model="openai/gpt-4o", max_iterations=10, output_format="text")
+        config = Config(model="oci/xai.grok-4-1-fast-reasoning", max_iterations=10, output_format="text")
         mock_client = MagicMock()
         mock_client.chat.return_value = LLMResponse(text="Hello!", tool_calls=[])
 

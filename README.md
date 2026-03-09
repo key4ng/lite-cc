@@ -55,11 +55,11 @@ litecc run "analyze cc/agent.py" --plugin-dir examples/code-analyst
 Output:
 
 ```
-14:32:05 [litecc]  Using model: gpt-5.2
+14:32:05 [litecc]  Using model: grok-4-1-fast
 14:32:05 [litecc]  Starting task...
 14:32:06 [tool]    list_files: **/*.py
 14:32:07 [tool]    read_file: cc/agent.py
-14:32:08 [gpt-5.2] I'll describe each file...
+14:32:08 [grok-4-1-fast] I'll describe each file...
 14:32:09 [litecc]  Here are the Python files...
 ```
 
@@ -182,13 +182,13 @@ Config is resolved in order of precedence (highest wins):
 | 1 | CLI flags | `--model openai/gpt-4o` |
 | 2 | Environment variables | `CC_MODEL=openai/gpt-4o` |
 | 3 | Config file | `~/.cc/config.yaml` |
-| 4 | Defaults | `oci/openai.gpt-5.2` |
+| 4 | Defaults | `oci/xai.grok-4-1-fast-reasoning` |
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CC_MODEL` | `oci/openai.gpt-5.2` | LiteLLM model identifier |
+| `CC_MODEL` | `oci/xai.grok-4-1-fast-reasoning` | LiteLLM model identifier |
 | `CC_OCI_REGION` | `us-chicago-1` | OCI region for inference |
 | `CC_OCI_COMPARTMENT` | — | OCI compartment OCID (required for `oci/` models) |
 | `CC_OCI_CONFIG_PROFILE` | `DEFAULT` | OCI config profile |
@@ -201,7 +201,7 @@ Config is resolved in order of precedence (highest wins):
 Create `~/.cc/config.yaml`:
 
 ```yaml
-model: oci/openai.gpt-5.2
+model: oci/xai.grok-4-1-fast-reasoning
 oci_region: us-chicago-1
 oci_compartment: ocid1.tenancy.oc1..aaaaaaaexample
 max_iterations: 50
@@ -218,7 +218,7 @@ Any [LiteLLM provider](https://docs.litellm.ai/docs/providers) works out of the 
 |----------|--------------|------|
 | OpenAI | `openai/gpt-4o` | `OPENAI_API_KEY` |
 | Anthropic | `anthropic/claude-3-sonnet-20240229` | `ANTHROPIC_API_KEY` |
-| OCI GenAI | `oci/openai.gpt-5.2` | `~/.oci/config` session token |
+| OCI GenAI | `oci/xai.grok-4-1-fast-reasoning` | `~/.oci/config` session token |
 | Gemini | `gemini/gemini-pro` | `GEMINI_API_KEY` |
 | Groq | `groq/llama3-70b-8192` | `GROQ_API_KEY` |
 | Ollama | `ollama/llama3` | Local server |
