@@ -2,7 +2,9 @@ import os
 from cc.config import load_config
 
 
-def test_defaults():
+def test_defaults(monkeypatch, tmp_path):
+    monkeypatch.setattr("cc.config.Path.home", lambda: tmp_path)
+    monkeypatch.delenv("CC_MODEL", raising=False)
     config = load_config()
     assert config.model == "oci/xai.grok-4-1-fast-reasoning"
     assert config.max_iterations == 100
