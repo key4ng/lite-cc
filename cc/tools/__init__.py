@@ -1,10 +1,13 @@
 """Built-in tool definitions and execution."""
 
+import copy
+
 from cc.tools.bash import TOOL_DEF as BASH_DEF, execute as bash_execute
 from cc.tools.read_file import TOOL_DEF as READ_DEF, execute as read_execute
 from cc.tools.write_file import TOOL_DEF as WRITE_DEF, execute as write_execute
 from cc.tools.list_files import TOOL_DEF as LIST_DEF, execute as list_execute
 from cc.tools.grep import TOOL_DEF as GREP_DEF, execute as grep_execute
+from cc.tools.subagent import TOOL_DEF as SUBAGENT_DEF, execute as subagent_execute
 from cc.safety import SafetyChecker
 
 _SKILL_TOOL_DEF = {
@@ -31,13 +34,14 @@ _TOOLS = {
     "write_file": (WRITE_DEF, write_execute),
     "list_files": (LIST_DEF, list_execute),
     "grep": (GREP_DEF, grep_execute),
+    "spawn_subagent": (SUBAGENT_DEF, subagent_execute),
 }
 
 
 def get_all_tools(skill_descriptions: list[str]) -> list[dict]:
     """Return OpenAI function-calling tool definitions."""
     tools = [defn for defn, _ in _TOOLS.values()]
-    skill_tool = _SKILL_TOOL_DEF.copy()
+    skill_tool = copy.deepcopy(_SKILL_TOOL_DEF)
     if skill_descriptions:
         desc = skill_tool["function"]["description"]
         desc += "\n\nAvailable skills:\n" + "\n".join(f"- {s}" for s in skill_descriptions)
@@ -46,11 +50,20 @@ def get_all_tools(skill_descriptions: list[str]) -> list[dict]:
     return tools
 
 
-def execute_tool(name: str, arguments: dict, safety: SafetyChecker, project_dir: str, timeout: int = 120) -> str:
+def get_tool_defs(exclude: list[str] | None = None) -> list[dict]:
+    """Return tool definitions, optionally excluding named tools."""
+    excluded = set(exclude or [])
+    return [defn for name, (defn, _) in _TOOLS.items() if name not in excluded]
+
+
+def execute_tool(name: str, arguments: dict, safety: SafetyChecker, project_dir: str,
+                 timeout: int = 120, config=None, plugins=None) -> str:
     """Execute a built-in tool by name. Returns result string."""
     if name not in _TOOLS:
         return f"Error: unknown tool '{name}'"
     _, exec_fn = _TOOLS[name]
     if name == "bash":
         return exec_fn(arguments, safety, project_dir, timeout=timeout)
+    if name == "spawn_subagent":
+        return exec_fn(arguments, safety, project_dir, config=config, plugins=plugins, timeout=timeout)
     return exec_fn(arguments, safety, project_dir)

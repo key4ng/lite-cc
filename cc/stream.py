@@ -69,3 +69,30 @@ class StreamEmitter:
             "duration_ms": duration_ms,
             "iterations": iterations,
         })
+
+    def subagent_start(self, model: str, prompt_preview: str):
+        self.emit({
+            "type": "subagent",
+            "subtype": "start",
+            "model": model,
+            "prompt_preview": prompt_preview[:200],
+        })
+
+    def subagent_result(self, model: str, text_preview: str, input_tokens: int, output_tokens: int, iterations: int):
+        self.emit({
+            "type": "subagent",
+            "subtype": "result",
+            "model": model,
+            "text_preview": text_preview[:200],
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "iterations": iterations,
+        })
+
+    def subagent_progress(self, model: str, iteration: int):
+        self.emit({
+            "type": "subagent",
+            "subtype": "progress",
+            "model": model,
+            "iteration": iteration,
+        })

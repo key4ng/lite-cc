@@ -24,6 +24,7 @@ TAG_STYLES = {
     "skill":     (MAGENTA, BOLD),
     "thinking":  (BLUE, DIM),
     "error":     ("\033[31m", BOLD),
+    "subagent":  ("\033[35m", BOLD),
 }
 
 
@@ -116,6 +117,29 @@ class Logger:
         parts.append(f"{iterations} iterations")
         parts.append(f"{self._tool_count} tool calls")
         self.log("litecc", " | ".join(parts))
+
+    def subagent_start(self, model: str, prompt_preview: str):
+        short = _short_model_name(model)
+        preview = _compact(prompt_preview, 80)
+        ts = datetime.now().strftime("%H:%M:%S")
+        color, style = TAG_STYLES["subagent"]
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[subagent/{short}]{RESET}"
+        print(f"{prefix} spawning: {preview}", file=sys.stderr, flush=True)
+
+    def subagent_result(self, model: str, text_preview: str):
+        short = _short_model_name(model)
+        preview = _compact(text_preview, 120)
+        ts = datetime.now().strftime("%H:%M:%S")
+        color, style = TAG_STYLES["subagent"]
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[subagent/{short}]{RESET}"
+        print(f"{prefix} done: {preview}", file=sys.stderr, flush=True)
+
+    def subagent_progress(self, model: str, iteration: int):
+        short = _short_model_name(model)
+        ts = datetime.now().strftime("%H:%M:%S")
+        color, style = TAG_STYLES["subagent"]
+        prefix = f"{DIM}{ts}{RESET} {style}{color}[subagent/{short}]{RESET}"
+        print(f"{prefix} iteration {iteration}", file=sys.stderr, flush=True)
 
 
 def _clean_command(tool_name: str, summary: str) -> str:

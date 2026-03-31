@@ -2,6 +2,7 @@
 
 import json
 import time
+from dataclasses import dataclass
 from cc.config import Config
 from cc.llm import LLMClient, LLMResponse
 from cc.safety import SafetyChecker
@@ -9,6 +10,15 @@ from cc.tools import get_all_tools, execute_tool
 from cc.plugins.loader import PluginInfo
 from cc.output import Logger
 from cc.stream import StreamEmitter
+
+
+@dataclass
+class LoopResult:
+    text: str
+    total_input: int
+    total_output: int
+    total_reasoning: int
+    iterations_used: int
 
 
 def _build_system_prompt(config: Config, plugins: list[PluginInfo], skill_registry: dict) -> str:
@@ -59,6 +69,7 @@ def run_agent(
     config: Config,
     llm: LLMClient,
     plugins: list[PluginInfo],
+    max_output_tokens: int = 0,
 ) -> str:
     log = Logger(verbose=config.verbose, model=config.model)
     safety = SafetyChecker(project_dir=config.project_dir)
@@ -98,11 +109,14 @@ def run_agent(
     total_reasoning = 0
 
     try:
-        return _run_loop(
+        loop_result = _run_loop(
             config, llm, log, stream, safety, skill_registry,
             messages, tools, start_time,
             total_input, total_output, total_reasoning,
+            max_output_tokens=max_output_tokens,
+            plugins=plugins,
         )
+        return loop_result.text
     except Exception as e:
         if stream:
             duration_ms = int((time.monotonic() - start_time) * 1000)
@@ -115,6 +129,8 @@ def _run_loop(
     config, llm, log, stream, safety, skill_registry,
     messages, tools, start_time,
     total_input, total_output, total_reasoning,
+    max_output_tokens: int = 0,
+    plugins=None,
 ):
     for i in range(config.max_iterations):
         log.iteration(i, config.max_iterations)
@@ -157,7 +173,13 @@ def _run_loop(
                 duration_ms = int((time.monotonic() - start_time) * 1000)
                 stream.result(final_text, is_error=False, duration_ms=duration_ms, iterations=iterations_used)
                 stream.system_done(iterations_used)
-            return final_text
+            return LoopResult(
+                text=final_text,
+                total_input=total_input,
+                total_output=total_output,
+                total_reasoning=total_reasoning,
+                iterations_used=iterations_used,
+            )
 
         # Show assistant reasoning before tool calls
         if response.text:
@@ -198,7 +220,8 @@ def _run_loop(
                 log.tool_call(tc.name, _summarize_args(tc))
                 if stream:
                     stream.tool_use(tc.id, tc.name, tc.arguments)
-                result = execute_tool(tc.name, tc.arguments, safety, config.project_dir, timeout=config.timeout)
+                result = execute_tool(tc.name, tc.arguments, safety, config.project_dir,
+                                      timeout=config.timeout, config=config, plugins=plugins)
                 log.tool_result(result)
                 if stream:
                     stream.tool_result(tc.id, tc.name, result, error=False)
@@ -207,6 +230,24 @@ def _run_loop(
                     "tool_call_id": tc.id,
                     "content": result,
                 })
+
+        # Check token budget after tool execution
+        if max_output_tokens and total_output >= max_output_tokens:
+            log.info(f"Output token budget reached ({total_output:,}/{max_output_tokens:,})")
+            final_text = response.text or ""
+            iterations_used = i + 1
+            log.usage_summary(total_input, total_output, total_reasoning, iterations_used)
+            if stream:
+                duration_ms = int((time.monotonic() - start_time) * 1000)
+                stream.result(final_text, is_error=False, duration_ms=duration_ms, iterations=iterations_used)
+                stream.system_done(iterations_used)
+            return LoopResult(
+                text=final_text,
+                total_input=total_input,
+                total_output=total_output,
+                total_reasoning=total_reasoning,
+                iterations_used=iterations_used,
+            )
 
     log.info(f"Reached max iterations ({config.max_iterations})")
     log.usage_summary(total_input, total_output, total_reasoning, config.max_iterations)
@@ -218,7 +259,13 @@ def _run_loop(
         stream.result(final_text, is_error=True, duration_ms=duration_ms, iterations=config.max_iterations)
         stream.system_done(config.max_iterations)
 
-    return messages[-1].get("content", "") if messages else ""
+    return LoopResult(
+        text=messages[-1].get("content", "") if messages else "",
+        total_input=total_input,
+        total_output=total_output,
+        total_reasoning=total_reasoning,
+        iterations_used=config.max_iterations,
+    )
 
 
 def _summarize_args(tc) -> str:
@@ -230,4 +277,8 @@ def _summarize_args(tc) -> str:
         return tc.arguments.get("pattern", "")
     if tc.name == "grep":
         return tc.arguments.get("pattern", "")
+    if tc.name == "spawn_subagent":
+        model = tc.arguments.get("model", "default")
+        prompt = tc.arguments.get("prompt", "")[:60]
+        return f"{model}: {prompt}"
     return str(tc.arguments)[:100]
